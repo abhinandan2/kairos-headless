@@ -6,9 +6,9 @@ const automator = require("../main/automator.js");
 const browser = automator.browser;
 
 
-async function botLogin(loadTestDataItem,itemIndex) {
+async function botLogin(loadTestDataItem, itemIndex) {
 	
-const context = await automator.browser.createIncognitoBrowserContext();
+	const context = await automator.browser.createIncognitoBrowserContext();
 	const page = await context.newPage();
 	// await page.emulateMedia('screen'); 
 	await page.goto('https://abflbot-backend.phonon.in/', {waitUntil: 'networkidle0'});
