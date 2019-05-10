@@ -23,7 +23,7 @@ function insertTestData(id,username,password,instances,context,screenGrab) {
 //    insertTestData("centralAgent#4","s@gmail.com","Test@123",1,null,false);
     
     
-    insertTestData("centralAgent#200001","a1@gmail.com","Test@123",1,null,false);
+    /*insertTestData("centralAgent#200001","a1@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200002","a2@gmail.com","Test@123",1,null,true);
     insertTestData("centralAgent#200003","a3@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200004","a4@gmail.com","Test@123",1,null,false);
@@ -72,7 +72,7 @@ function insertTestData(id,username,password,instances,context,screenGrab) {
     insertTestData("centralAgent#200047","a47@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200048","a48@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200049","a49@gmail.com","Test@123",1,null,false);
-    insertTestData("centralAgent#200050","a50@gmail.com","Test@123",1,null,false);
+    insertTestData("centralAgent#200050","a50@gmail.com","Test@123",1,null,false);*/
     insertTestData("centralAgent#200051","a51@gmail.com","Test@123",1,null,true);
     insertTestData("centralAgent#200052","a52@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200053","a53@gmail.com","Test@123",1,null,false);
