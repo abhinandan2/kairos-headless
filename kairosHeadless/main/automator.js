@@ -79,12 +79,13 @@ console.log("CONCURRENCY: ", constants.CONCURRENT);
 
     for (let j = 0; j < loadTestDataList.length; j += constants.CONCURRENT) {
         const upto = Math.min(constants.CONCURRENT, loadTestDataList.length - j);
-
+        var promises = [];
         for(let i = j, k = 0; k < upto; i++, k++) {
             console.log("loadTestDataList[i]", loadTestDataList[i], i);
-            await startFlow(loadTestDataList[i], i);
+            promises.push(startFlow(loadTestDataList[i], i));
             console.log("Moving on to ", i);
         }
+        await Promise.all(promises);
     }
 })();
 
@@ -111,7 +112,7 @@ async function startFlow(loadTestDataListItem, i) {
                     reject();
                 });
             }
-            
+
         });
     })
 }
