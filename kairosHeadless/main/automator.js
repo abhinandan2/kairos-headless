@@ -83,7 +83,6 @@ console.log("CONCURRENCY: ", constants.CONCURRENT);
         for(let i = j, k = 0; k < upto; i++, k++) {
             console.log("loadTestDataList[i]", loadTestDataList[i], i);
             promises.push(startFlow(loadTestDataList[i], i));
-            console.log("Moving on to ", i);
         }
         await Promise.all(promises);
     }
