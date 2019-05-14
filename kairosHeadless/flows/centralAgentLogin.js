@@ -9,7 +9,7 @@ const puppeteer = require('puppeteer');
 const browser = automator.browser;
 
 const config = {
-    URL: 'https://central-uat.phonon.in/authorization-server/user/signin',
+    URL: 'https://central-test.phonon.in/authorization-server/user/signin',
     viewPort: { width: 1280, height: 615 },
     screenshotInterval: 10000,
 };
