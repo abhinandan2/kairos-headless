@@ -73,12 +73,12 @@ try {
 console.log("CONCURRENCY: ", constants.CONCURRENT);
 
 (async () => {
-    // browser = await puppeteer.launch({
-    //     headless: constants.HEADLESSMODE,
-    //     timeout: constants.BROWSERTIMEOUT,
-    // });
+    browser = await puppeteer.launch({
+        headless: constants.HEADLESSMODE,
+        timeout: constants.BROWSERTIMEOUT,
+    });
 
-    // exports.browser = browser;
+    exports.browser = browser;
 
     for (let j = 0; j < loadTestDataList.length; j += constants.CONCURRENT) {
         const upto = Math.min(constants.CONCURRENT, loadTestDataList.length - j);

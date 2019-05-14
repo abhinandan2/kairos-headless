@@ -107,9 +107,9 @@ async function takeMissedScreenshot (page, loadTestDataItem, itemIndex) {
 async function centralAgentLogin(loadTestDataItem, itemIndex) {
     if(loadTestDataItem.options.headless === false)
         console.log(loadTestDataItem.id, "Headless is false");
-    const browser = await puppeteer.launch({ headless: loadTestDataItem.options.headless || true });
-    // const context = await automator.browser.createIncognitoBrowserContext();
-    const page = await browser.newPage();
+    // const browser = await puppeteer.launch({ headless: loadTestDataItem.options.headless || true });
+    const context = await automator.browser.createIncognitoBrowserContext();
+    const page = await context.newPage();
     page.setDefaultTimeout(constants.DEFAULTTIMEOUT);
 
     var scheduledID = null;
@@ -145,9 +145,9 @@ async function centralAgentLogin(loadTestDataItem, itemIndex) {
 
     await page.waitForSelector('body > div > div > div > div > div > div > div > div > form > div:nth-child(2) > div > div > button:not([disabled])');
 
-    await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "softLoginDetails"), fullPage: true });
-    console.log(loadTestDataItem.id, "Screenshot > softLoginDetails");
     await timeout(500);
+    await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "softLoginDetails"), fullPage: true });
+    console.log(loadTestDataItem.id, "softLoginDetails");
     await page.click('body > div > div > div > div > div > div > div > div > form > div:nth-child(2) > div > div > button');
 
     if(loadTestDataItem.options.takeEventsScreenshot) {
