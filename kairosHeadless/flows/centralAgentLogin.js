@@ -17,49 +17,91 @@ function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 };
 
-async function takeIncomingScreenshot (page, id, itemIndex) {
+async function takeIncomingScreenshot (page, loadTestDataItem, itemIndex) {
 	await page.waitForSelector('#footer-incoming:not(.ng-hide)', { timeout: 0 });
-	console.log("takeIncomingScreenshot");
+	console.log(loadTestDataItem.id, "takeIncomingScreenshot");
 	// Wait for one second before taking screenshot.
 	await timeout(1000);
-	await page.screenshot({ path: logUtil.screenShotPath(id, itemIndex, "incoming"), fullPage: true });
+	await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "incoming"), fullPage: true });
 	await page.waitForSelector('#footer-incoming.ng-hide', { timeout: 0 });
 	if(!(page.isClosed()))
-		takeIncomingScreenshot(page, id, itemIndex);
+		takeIncomingScreenshot(page, loadTestDataItem, itemIndex);
 }
 
-async function takeConnectedScreenshot (page, id, itemIndex) {
+async function takeConnectedScreenshot (page, loadTestDataItem, itemIndex) {
 	await page.waitForSelector('#footer-connected:not(.ng-hide)', { timeout: 0 });
-	console.log("takeConnectedScreenshot");
+	console.log(loadTestDataItem.id, "takeConnectedScreenshot");
 	// Wait for one second before taking screenshot.
 	await timeout(1000);
-	await page.screenshot({ path: logUtil.screenShotPath(id, itemIndex, "connected"), fullPage: true });
+	await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "connected"), fullPage: true });
 	await page.waitForSelector('#footer-connected.ng-hide', { timeout: 0 });
 	if(!(page.isClosed()))
-		takeConnectedScreenshot(page, id, itemIndex);
+		takeConnectedScreenshot(page, loadTestDataItem, itemIndex);
 }
 
-async function takeCompletedScreenshot (page, id, itemIndex) {
+async function takeCompletedScreenshot (page, loadTestDataItem, itemIndex) {
 	await page.waitForSelector('#footer-completed:not(.ng-hide)', { timeout: 0 });
-	console.log("takeCompletedScreenshot");
+	console.log(loadTestDataItem.id, "takeCompletedScreenshot");
 	// Wait for one second before taking screenshot.
 	await timeout(1000);
-	await page.screenshot({ path: logUtil.screenShotPath(id, itemIndex, "completed"), fullPage: true });
+	await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "completed"), fullPage: true });
 	await page.waitForSelector('#footer-completed.ng-hide', { timeout: 0 });
 	if(!(page.isClosed()))
-		takeCompletedScreenshot(page, id, itemIndex);
+		takeCompletedScreenshot(page, loadTestDataItem, itemIndex);
 }
 
-async function takeMissedScreenshot (page, id, itemIndex) {
+async function takeMissedScreenshot (page, loadTestDataItem, itemIndex) {
 	await page.waitForSelector('#missed:not(.ng-hide)', { timeout: 0 });
-	console.log("takeMissedScreenshot");
+	console.log(loadTestDataItem.id, "takeMissedScreenshot");
 	// Wait for one second before taking screenshot.
 	await timeout(1000);
-	await page.screenshot({ path: logUtil.screenShotPath(id, itemIndex, "missed"), fullPage: true });
+	await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "missed"), fullPage: true });
 	await page.waitForSelector('#missed.ng-hide', { timeout: 0 });
 	if(!(page.isClosed()))
-		takeMissedScreenshot(page, id, itemIndex);
+		takeMissedScreenshot(page, loadTestDataItem, itemIndex);
 }
+
+// async function takeOtherEventsScreenshot (page, loadTestDataItem, itemIndex) {
+// 	await page.waitForSelector('.agentui__footer-title.m-t-none', { timeout: 0 });
+// 	const titleText = await page.$eval('.agentui__footer-title.m-t-none', el => {
+// 		debugger;
+// 	});
+
+// 	console.log(loadTestDataItem.id, "titleText", titleText);
+
+// 	switch(titleText) {
+// 		case 'On Call':
+// 			console.log("On Call");
+// 			await timeout(1000);
+// 			await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "On-Call"), fullPage: true });
+// 			break;
+// 		case 'Dialing':
+// 			console.log("Dialing");
+// 			break;
+// 		case 'On Conference Call':
+// 			console.log("On Conference Call");
+// 			break;
+// 		case 'Conference Ended':
+// 			console.log("Conference Ended");
+// 			break;
+// 		case 'Conference Missed':
+// 			console.log("Conference Missed");
+// 			break;
+// 		case 'On Consultation':
+// 			console.log("On Consultation");
+// 			break;
+// 		case 'Consultation Ended':
+// 			console.log("Consultation Ended");
+// 			break;
+// 		case 'Consultation Missed':
+// 			console.log("Consultation Missed");
+// 			break;
+// 	}
+
+// 	await page.waitForFunction(`document.querySelector(".agentui__footer-title.m-t-none").inner‌​Text !== ${titleText}`, { timeout: 0 });
+// 	if(!(page.isClosed()))
+// 		takeOtherEventsScreenshot(page, loadTestDataItem, itemIndex);
+// }
 
 async function centralAgentLogin(loadTestDataItem, itemIndex) {
 
@@ -96,20 +138,21 @@ async function centralAgentLogin(loadTestDataItem, itemIndex) {
     await page.waitForSelector('.form-group .radio > #softphone');
     await page.click('.form-group .radio > #softphone');
 
-    await page.evaluate(() => console.log(`url is ${location.href}`));
+    await page.evaluate(() => console.log(`$url is ${location.href}`));
 
     await page.waitForSelector('body > div > div > div > div > div > div > div > div > form > div:nth-child(2) > div > div > button:not([disabled])');
 
     await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "softLoginDetails"), fullPage: true });
-
+    console.log(loadTestDataItem.id, "Screenshot > softLoginDetails");
     await page.click('body > div > div > div > div > div > div > div > div > form > div:nth-child(2) > div > div > button');
 
     if(loadTestDataItem.options.takeEventsScreenshot) {
-    	console.log("Capturing events");
-	    takeIncomingScreenshot(page, loadTestDataItem.id, itemIndex);
-	    takeConnectedScreenshot(page, loadTestDataItem.id, itemIndex);
-	    takeCompletedScreenshot(page, loadTestDataItem.id, itemIndex);
-	    takeMissedScreenshot(page, loadTestDataItem.id, itemIndex);    	
+    	console.log(loadTestDataItem.id, "Capturing events");
+	    takeIncomingScreenshot(page, loadTestDataItem, itemIndex);
+	    takeConnectedScreenshot(page, loadTestDataItem, itemIndex);
+	    takeCompletedScreenshot(page, loadTestDataItem, itemIndex);
+	    takeMissedScreenshot(page, loadTestDataItem, itemIndex);
+	    // takeOtherEventsScreenshot(page, loadTestDataItem, itemIndex);
     }
 
 
@@ -121,7 +164,7 @@ async function centralAgentLogin(loadTestDataItem, itemIndex) {
     }, config.screenshotInterval)
 
     if (constants.TAKESCHEDULEDSCREENGRAB && loadTestDataItem.screenGrab) {
-        console.log("Scheduled Screenshot ENABLED for " + loadTestDataItem.id);
+        console.log(loadTestDataItem.id, "Scheduled Screenshot ENABLED for " + loadTestDataItem.id);
         scheduledID = setInterval(() => {
             if (!(page.isClosed())) {
                 page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "ScheduledScreenShot"), fullPage: true })
@@ -132,11 +175,11 @@ async function centralAgentLogin(loadTestDataItem, itemIndex) {
         console.log("Scheduled Screenshot DISABLED for " + loadTestDataItem.id);
     }
 
-    page.on('close', () => {
-    	console.log("Page is closed...");
+    page.on('close', (loadTestDataItem) => {
+    	console.log(loadTestDataItem.id, "Page is closed...");
         if (scheduledID) {
             clearInterval(scheduledID);
-            console.log("Screenshot Interval Cleared...");
+            console.log(loadTestDataItem.id, "Screenshot Interval Cleared...");
         }
     });
 

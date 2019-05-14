@@ -26,28 +26,28 @@ function insertTestData(id, username, password, instances, context = null, scree
     insertTestData("centralAgent#200017","a17@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200018","a18@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200019","a19@gmail.com","Test@123",1,null,false);
-    insertTestData("centralAgent#200020","a20@gmail.com","Test@123",1,null,false);
-    insertTestData("centralAgent#200021","a21@gmail.com","Test@123",1,null,false);
+    insertTestData("centralAgent#200020","a20@gmail.com","Test@123",1,null,false);*/
+    insertTestData("centralAgent#200021","a21@gmail.com","Test@123",1,null,false, { takeEventsScreenshot: true });
     insertTestData("centralAgent#200022","a22@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200023","a23@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200024","a24@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200025","a25@gmail.com","Test@123",1,null,false);
-    insertTestData("centralAgent#200026","a26@gmail.com","Test@123",1,null,false);
+    insertTestData("centralAgent#200026","a26@gmail.com","Test@123",1,null,false, { takeEventsScreenshot: true });
     insertTestData("centralAgent#200027","a27@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200028","a28@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200029","a29@gmail.com","Test@123",1,null,true);
     insertTestData("centralAgent#200030","a30@gmail.com","Test@123",1,null,false);
-    insertTestData("centralAgent#200031","a31@gmail.com","Test@123",1,null,false);
+    insertTestData("centralAgent#200031","a31@gmail.com","Test@123",1,null,false, { takeEventsScreenshot: true });
     insertTestData("centralAgent#200032","a32@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200033","a33@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200034","a34@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200035","a35@gmail.com","Test@123",1,null,false);
-    insertTestData("centralAgent#200036","a36@gmail.com","Test@123",1,null,false);
+    insertTestData("centralAgent#200036","a36@gmail.com","Test@123",1,null,false, { takeEventsScreenshot: true });
     insertTestData("centralAgent#200037","a37@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200038","a38@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200039","a39@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200040","a40@gmail.com","Test@123",1,null,false);
-    insertTestData("centralAgent#200041","a41@gmail.com","Test@123",1,null,false);
+    /*insertTestData("centralAgent#200041","a41@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200042","a42@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200043","a43@gmail.com","Test@123",1,null,true);
     insertTestData("centralAgent#200044","a44@gmail.com","Test@123",1,null,false);
@@ -56,7 +56,7 @@ function insertTestData(id, username, password, instances, context = null, scree
     insertTestData("centralAgent#200047","a47@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200048","a48@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200049","a49@gmail.com","Test@123",1,null,false);
-    insertTestData("centralAgent#200050","a50@gmail.com","Test@123",1,null,false);*/
+    insertTestData("centralAgent#200050","a50@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200051","a51@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200052","a52@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200053","a53@gmail.com","Test@123",1,null,false);
@@ -106,7 +106,8 @@ function insertTestData(id, username, password, instances, context = null, scree
     insertTestData("centralAgent#200097","a97@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200098","a98@gmail.com","Test@123",1,null,false);
     insertTestData("centralAgent#200099","a99@gmail.com","Test@123",1,null,false);
-    insertTestData("centralAgent#200100","a100@gmail.com","Test@123",1,null,false);
+    insertTestData("centralAgent#200100","a100@gmail.com","Test@123",1,null,false);*/
 
     
 exports.loadTestData = loadTest;
+
