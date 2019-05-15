@@ -79,6 +79,7 @@ console.log("CONCURRENCY: ", constants.CONCURRENT);
     });
 
     exports.browser = browser;
+    exports.testName = argv.test;
 
     for (let j = 0; j < loadTestDataList.length; j += constants.CONCURRENT) {
         const upto = Math.min(constants.CONCURRENT, loadTestDataList.length - j);

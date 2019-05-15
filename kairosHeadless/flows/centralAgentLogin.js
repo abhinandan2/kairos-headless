@@ -69,7 +69,7 @@ async function alertDisconnect (page, loadTestDataItem, itemIndex) {
     // Wait for one second before taking screenshot.
     await timeout(1000);
     await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "disconnected"), fullPage: true });
-    let text = loadTestDataItem.id + " got disconnected at " + new Date().toLocaleTimeString() + " ( " + new Date().getTime() + " ).";
+    let text = "Test: " + automator.testName + "| Agent: " + loadTestDataItem.id + " | Disconnected at " + new Date().toLocaleTimeString() + " ( " + new Date().getTime() + " ).";
     if(loadTestDataItem.options.getSlackAlerts)
         sendToSlack(text);
     await page.waitForSelector('#toast-container > div > div > div > div[aria-label="You are offline"]', { hidden: true, timeout: 0 });
