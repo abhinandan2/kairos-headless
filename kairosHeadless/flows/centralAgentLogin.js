@@ -5,11 +5,12 @@ const logUtil = require("../extras/logUtil.js");
 const constants = require("../constants/common.js");
 const automator = require("../main/automator.js");
 const puppeteer = require('puppeteer');
+const https = require('https')
 
 const browser = automator.browser;
 
 const config = {
-    URL: 'https://central-test.phonon.in/authorization-server/user/signin',
+    URL: 'https://central-uat.phonon.in/authorization-server/user/signin',
     viewPort: { width: 1280, height: 615 },
     screenshotInterval: 10000,
 };
@@ -60,6 +61,49 @@ async function takeMissedScreenshot (page, loadTestDataItem, itemIndex) {
 	await page.waitForSelector('#missed.ng-hide', { timeout: 0 });
 	if(!(page.isClosed()))
 		takeMissedScreenshot(page, loadTestDataItem, itemIndex);
+}
+
+async function alertDisconnect (page, loadTestDataItem, itemIndex) {
+    await page.waitForSelector('#toast-container > div > div > div > div[aria-label="You are offline"]', { timeout: 0 });
+    console.log(loadTestDataItem.id, "alertDisconnect");
+    // Wait for one second before taking screenshot.
+    await timeout(1000);
+    await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "disconnected"), fullPage: true });
+    if(loadTestDataItem.options.getSlackAlerts)
+        sendToSlack(loadTestDataItem.id + " got disconnected at " + new Date().toLocaleTimeString() + " ( " + new Date().getTime() + " ).");
+    await page.waitForSelector('#toast-container > div > div > div > div[aria-label="You are offline"]', { hidden: true, timeout: 0 });
+    if(!(page.isClosed()))
+        alertDisconnect(page, loadTestDataItem, itemIndex);
+}
+
+function sendToSlack (text) {
+    const data = JSON.stringify({ text });
+
+    const options = {
+      hostname: 'hooks.slack.com',
+      port: 443,
+      path: '/services/T8HM74UCF/BJQ1CEAJH/Df70Q6m0GsmSahoTf6BxKi4i',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': data.length
+      }
+    }
+
+    const req = https.request(options, (res) => {
+      console.log(`statusCode: ${res.statusCode}`)
+
+      res.on('data', (d) => {
+        process.stdout.write(d)
+      })
+    })
+
+    req.on('error', (error) => {
+      console.error(error)
+    })
+
+    req.write(data)
+    req.end()
 }
 
 // async function takeOtherEventsScreenshot (page, loadTestDataItem, itemIndex) {
@@ -159,6 +203,7 @@ async function centralAgentLogin(loadTestDataItem, itemIndex) {
 	    // takeOtherEventsScreenshot(page, loadTestDataItem, itemIndex);
     }
 
+    alertDisconnect(page, loadTestDataItem, itemIndex);
 
     setTimeout(() => {
         if (!(page.isClosed())) {
