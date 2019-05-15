@@ -69,14 +69,24 @@ async function alertDisconnect (page, loadTestDataItem, itemIndex) {
     // Wait for one second before taking screenshot.
     await timeout(1000);
     await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "disconnected"), fullPage: true });
+    let text = loadTestDataItem.id + " got disconnected at " + new Date().toLocaleTimeString() + " ( " + new Date().getTime() + " ).";
     if(loadTestDataItem.options.getSlackAlerts)
-        sendToSlack(loadTestDataItem.id + " got disconnected at " + new Date().toLocaleTimeString() + " ( " + new Date().getTime() + " ).");
+        sendToSlack(text);
     await page.waitForSelector('#toast-container > div > div > div > div[aria-label="You are offline"]', { hidden: true, timeout: 0 });
+    // You might say it's a better idea to keep the sendToSlack function here.
+    // Since it makes sense to only send message when you are back online.
+    // However, it is not neccessary that the socket disconnection occurred because of internet.
+    // Hence, it is better to keep it the way it is.
     if(!(page.isClosed()))
         alertDisconnect(page, loadTestDataItem, itemIndex);
 }
 
-function sendToSlack (text) {
+function sendToSlack (text, retry = 0) {
+    if(retry > 2) {
+        console.log("Retried 3 times, stopping now.", text);
+        return
+    }
+    console.log("sendToSlack => ", text, retry);
     const data = JSON.stringify({ text });
 
     const options = {
@@ -92,7 +102,6 @@ function sendToSlack (text) {
 
     const req = https.request(options, (res) => {
       console.log(`statusCode: ${res.statusCode}`)
-
       res.on('data', (d) => {
         process.stdout.write(d)
       })
@@ -100,6 +109,9 @@ function sendToSlack (text) {
 
     req.on('error', (error) => {
       console.error(error)
+      console.log("Calling again in few minutes", text);
+      retry++;
+      setTimeout(() => sendToSlack(text, retry), 30 * 60 * 1000);
     })
 
     req.write(data)
