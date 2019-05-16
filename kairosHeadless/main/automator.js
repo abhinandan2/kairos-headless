@@ -15,6 +15,8 @@ var argv = require('yargs')
     .nargs('t', 1)
     .describe('t', 'provide a unique test name. It has alphanumberic. Minimum 4 charaters. This will be used in screenshots and console log folder name')
     .demandOption(['t'])
+    .alias('c', 'concurrency')
+    .describe('c', 'Concurrency to use')
     .help('h')
     .alias('h', 'help')
     .epilog('copyright 2019')
@@ -35,6 +37,7 @@ var browser;
 var testName;
 
 if ((typeof(argv.test) === "string") && (argv.test.length > 3) && !(/\s/.test(argv.test))) {
+    constants.CONCURRENT = argv.concurrency || 5;
     testName = '/' + argv.test + "#" + commonUtils.randomFixedInteger(4);
     testDir = logDir + testName;
     testDirLogs = logDir + testName + "/consoleLogs";
@@ -77,6 +80,7 @@ console.log("CONCURRENCY: ", constants.CONCURRENT);
     });
 
     exports.browser = browser;
+    exports.testName = testName;
 
     for (let j = 0; j < loadTestDataList.length; j += constants.CONCURRENT) {
         const upto = Math.min(constants.CONCURRENT, loadTestDataList.length - j);
