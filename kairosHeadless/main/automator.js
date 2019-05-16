@@ -73,6 +73,7 @@ console.log("CONCURRENCY: ", constants.CONCURRENT);
     browser = await puppeteer.launch({
         headless: constants.HEADLESSMODE,
         timeout: constants.BROWSERTIMEOUT,
+//        args: ['--no-sandbox'] //for older version of chrome enable this to prevent launch exeption
     });
 
     exports.browser = browser;
