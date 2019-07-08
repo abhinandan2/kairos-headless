@@ -2,7 +2,7 @@ var exports = module.exports = {};
 const loadTest = [];
 
 
-function insertTestData(id, username, password, instances, context = null, screenGrab, options = { takeEventsScreenshot: true, headless: true }) {
+function insertTestData(id, username, password, instances, context = null, screenGrab, options = { takeEventsScreenshot: true, headless: true, getSlackAlerts: false }) {
 	loadTest.push({ id, username, password, instances, context, screenGrab, options });
 }
 

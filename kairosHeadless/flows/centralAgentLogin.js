@@ -5,11 +5,12 @@ const logUtil = require("../extras/logUtil.js");
 const constants = require("../constants/common.js");
 const automator = require("../main/automator.js");
 const puppeteer = require('puppeteer');
+const https = require('https')
 
 const browser = automator.browser;
 
 const config = {
-    URL: 'https://central-test.phonon.in/authorization-server/user/signin',
+    URL: 'https://central-uat.phonon.in/authorization-server/user/signin',
     viewPort: { width: 1280, height: 615 },
     screenshotInterval: 10000,
 };
@@ -62,6 +63,61 @@ async function takeMissedScreenshot (page, loadTestDataItem, itemIndex) {
 		takeMissedScreenshot(page, loadTestDataItem, itemIndex);
 }
 
+async function alertDisconnect (page, loadTestDataItem, itemIndex) {
+    await page.waitForSelector('#toast-container > div > div > div > div[aria-label="You are offline"]', { timeout: 0 });
+    console.log(loadTestDataItem.id, "alertDisconnect");
+    // Wait for one second before taking screenshot.
+    await timeout(1000);
+    await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "disconnected"), fullPage: true });
+    let text = "Test: " + automator.testName + "| Agent: " + loadTestDataItem.id + " | Disconnected at " + new Date().toLocaleTimeString() + " ( " + new Date().getTime() + " ).";
+    if(loadTestDataItem.options.getSlackAlerts)
+        sendToSlack(text);
+    await page.waitForSelector('#toast-container > div > div > div > div[aria-label="You are offline"]', { hidden: true, timeout: 0 });
+    // You might say it's a better idea to keep the sendToSlack function here.
+    // Since it makes sense to only send message when you are back online.
+    // However, it is not neccessary that the socket disconnection occurred because of internet.
+    // Hence, it is better to keep it the way it is.
+    if(!(page.isClosed()))
+        alertDisconnect(page, loadTestDataItem, itemIndex);
+}
+
+function sendToSlack (text, retry = 0) {
+    if(retry > 2) {
+        console.log("Retried 3 times, stopping now.", text);
+        return
+    }
+    console.log("sendToSlack => ", text, retry);
+    const data = JSON.stringify({ text });
+
+    const options = {
+      hostname: 'hooks.slack.com',
+      port: 443,
+      path: '/services/T8HM74UCF/BJQ1CEAJH/Df70Q6m0GsmSahoTf6BxKi4i',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': data.length
+      }
+    }
+
+    const req = https.request(options, (res) => {
+      console.log(`statusCode: ${res.statusCode}`)
+      res.on('data', (d) => {
+        process.stdout.write(d)
+      })
+    })
+
+    req.on('error', (error) => {
+      console.error(error)
+      console.log("Calling again in few minutes", text);
+      retry++;
+      setTimeout(() => sendToSlack(text, retry), 30 * 60 * 1000);
+    })
+
+    req.write(data)
+    req.end()
+}
+
 // async function takeOtherEventsScreenshot (page, loadTestDataItem, itemIndex) {
 // 	await page.waitForSelector('.agentui__footer-title.m-t-none', { timeout: 0 });
 // 	const titleText = await page.$eval('.agentui__footer-title.m-t-none', el => {
@@ -107,9 +163,9 @@ async function takeMissedScreenshot (page, loadTestDataItem, itemIndex) {
 async function centralAgentLogin(loadTestDataItem, itemIndex) {
     if(loadTestDataItem.options.headless === false)
         console.log(loadTestDataItem.id, "Headless is false");
-    const browser = await puppeteer.launch({ headless: loadTestDataItem.options.headless || true });
-    // const context = await automator.browser.createIncognitoBrowserContext();
-    const page = await browser.newPage();
+    // const browser = await puppeteer.launch({ headless: loadTestDataItem.options.headless || true });
+    const context = await automator.browser.createIncognitoBrowserContext();
+    const page = await context.newPage();
     page.setDefaultTimeout(constants.DEFAULTTIMEOUT);
 
     var scheduledID = null;
@@ -145,9 +201,9 @@ async function centralAgentLogin(loadTestDataItem, itemIndex) {
 
     await page.waitForSelector('body > div > div > div > div > div > div > div > div > form > div:nth-child(2) > div > div > button:not([disabled])');
 
-    await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "softLoginDetails"), fullPage: true });
-    console.log(loadTestDataItem.id, "Screenshot > softLoginDetails");
     await timeout(500);
+    await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "softLoginDetails"), fullPage: true });
+    console.log(loadTestDataItem.id, "softLoginDetails");
     await page.click('body > div > div > div > div > div > div > div > div > form > div:nth-child(2) > div > div > button');
 
     if(loadTestDataItem.options.takeEventsScreenshot) {
@@ -159,6 +215,7 @@ async function centralAgentLogin(loadTestDataItem, itemIndex) {
 	    // takeOtherEventsScreenshot(page, loadTestDataItem, itemIndex);
     }
 
+    alertDisconnect(page, loadTestDataItem, itemIndex);
 
     setTimeout(() => {
         if (!(page.isClosed())) {
