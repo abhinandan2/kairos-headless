@@ -10,7 +10,7 @@ const https = require('https')
 const browser = automator.browser;
 
 const config = {
-    URL: 'https://central-uat.phonon.in/authorization-server/user/signin',
+    URL: 'https://central-dev.phonon.io/authorization-server/user/signin',
     viewPort: { width: 1280, height: 615 },
     screenshotInterval: 10000,
 };
@@ -163,7 +163,7 @@ function sendToSlack (text, retry = 0) {
 async function centralAgentLogin(loadTestDataItem, itemIndex) {
     if(loadTestDataItem.options.headless === false)
         console.log(loadTestDataItem.id, "Headless is false");
-    // const browser = await puppeteer.launch({ headless: loadTestDataItem.options.headless || true });
+    // const browser = await puppeteer.launch({ headless: false });
     const context = await automator.browser.createIncognitoBrowserContext();
     const page = await context.newPage();
     page.setDefaultTimeout(constants.DEFAULTTIMEOUT);
@@ -194,17 +194,17 @@ async function centralAgentLogin(loadTestDataItem, itemIndex) {
 
     // await page.click('.ui > .ui > .field > .six > .positive')
 
-    await page.waitForSelector('.form-group .radio > #softphone');
-    await page.click('.form-group .radio > #softphone');
+    await page.waitForSelector('.form-group .radio > #SOFTPHONE');
+    await page.click('.form-group .radio > #SOFTPHONE');
 
     await page.evaluate(() => console.log(`$url is ${location.href}`));
 
-    await page.waitForSelector('body > div > div > div > div > div > div > div > div > form > div:nth-child(2) > div > div > button:not([disabled])');
+    await page.waitForSelector('.agentui__login--submit-button > button:not([disabled])');
 
     await timeout(500);
     await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "softLoginDetails"), fullPage: true });
     console.log(loadTestDataItem.id, "softLoginDetails");
-    await page.click('body > div > div > div > div > div > div > div > div > form > div:nth-child(2) > div > div > button');
+    await page.click('.agentui__login--submit-button > button');
 
     if(loadTestDataItem.options.takeEventsScreenshot) {
     	console.log(loadTestDataItem.id, "Capturing events");
