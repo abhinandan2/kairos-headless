@@ -7,6 +7,7 @@ const constants = require("../constants/common.js");
 const fs = require('fs');
 const fse = require('fs-extra')
 const path = require("path");
+const chalk = require('chalk');
 
 var argv = require('yargs')
     .usage('Usage: $0 [options]')
@@ -17,17 +18,25 @@ var argv = require('yargs')
     .demandOption(['t'])
     .alias('c', 'concurrency')
     .describe('c', 'Concurrency to use')
+    .alias('d', 'debug')
+    .describe('d', 'Start in debug with Headless mode off')
     .help('h')
     .alias('h', 'help')
     .epilog('copyright 2019')
+    .boolean(['d'])
     .argv;
 
 const loadTestDataList = loadTest.loadTestData;
 
 const exceutionMap = {};
 
+const getNow = commonUtils.getNow;
+const getDiff = commonUtils.getDiff;
+const cg = commonUtils.cg;
+const cc = commonUtils.cc;
+
 var logDir = path.join(__dirname, '..', 'logs');
-console.log("logDir", logDir);
+console.log("Main Log Directory:", logDir);
 var testDir;
 var testDirLogs;
 var testDirScreenShots;
@@ -37,14 +46,16 @@ var browser;
 var testName;
 
 if ((typeof(argv.test) === "string") && (argv.test.length > 3) && !(/\s/.test(argv.test))) {
-    constants.CONCURRENT = argv.concurrency || 5;
-    testName = '/' + argv.test + "#" + commonUtils.randomFixedInteger(4);
+    if(argv.debug)
+        constants.HEADLESSMODE = false;    
+    constants.CONCURRENT = argv.concurrency || constants.CONCURRENT;
+    testName = '/' + argv.test + "#" + commonUtils.getTimeString();
     testDir = logDir + testName;
     testDirLogs = logDir + testName + "/consoleLogs";
     testDirScreenShots = logDir + testName + "/screenShots";
-    console.log('Starting test: ', testName);
-    console.log('Log Directory: ', testDirLogs);
-    console.log('Log Directory: ', testDirScreenShots);
+    console.log(chalk.cyanBright('Starting test: '), testName);
+    console.log(chalk.cyanBright('Log Directory: '), testDir);
+    // console.log('Log Directory: ', testDirScreenShots);
 } else {
     if ((/\s/.test(argv.test))) {
         console.log('Whitespaces not allowed in test name');
@@ -62,7 +73,7 @@ try {
         fse.ensureDirSync(testDir);
     }
     if (!fs.existsSync(testDirLogs)) {
-        console.log("creating testDirLogs and testDirScreenShots");
+        console.log("    Test Dirs Created");
         fs.mkdirSync(testDirLogs);
         fs.mkdirSync(testDirScreenShots);
     }
@@ -70,12 +81,14 @@ try {
     console.log("Cannot make testDirLogs or testDirScreenShots", e);
 }
 
-console.log("CONCURRENCY: ", constants.CONCURRENT);
+console.log(chalk.magentaBright("Concurrency: "), constants.CONCURRENT);
+console.log(chalk.magentaBright("Headless: "), constants.HEADLESSMODE);
 
 (async () => {
     browser = await puppeteer.launch({
         headless: constants.HEADLESSMODE,
         timeout: constants.BROWSERTIMEOUT,
+        // devtools: true
 //        args: ['--no-sandbox'] //for older version of chrome enable this to prevent launch exeption
     });
 
@@ -90,29 +103,31 @@ console.log("CONCURRENCY: ", constants.CONCURRENT);
             promises.push(startFlow(loadTestDataList[i], i));
         }
         await Promise.all(promises);
+        console.log("\n\n");
     }
 })();
 
 async function startFlow(loadTestDataListItem, i) {
     return new Promise((resolve, reject) => {
         initiateFlow(loadTestDataListItem).then(res => {
-
-            console.log("Flow Successfull initiated for " + i + ": " + loadTestDataListItem.username);
+            loadTestDataListItem.ready = getDiff(loadTestDataListItem.start);
+            debugger;
+            console.log(cg(getNow()), '\t', cc("Ready #" + i + ": " + loadTestDataListItem.id + " in " + loadTestDataListItem.ready + " seconds") );
             resolve();
 
         }).catch(async err => {
 
-            console.log("Error initiating flow for " + i + ": " + loadTestDataListItem.username);
-            console.log(err);
+            console.log(cg(getNow()), '\t', "Error initiating flow for " + i + ": " + loadTestDataListItem.id);
+            console.log(cg(getNow()), '\t', err);
             if ((err instanceof puppeteer.errors.TimeoutError) && loadTestDataListItem.instances == 1) {
-                console.log("Flow reattempt initiated for " + i + ": " + loadTestDataListItem.username);
+                console.log(cg(getNow()), '\t', "Flow reattempt initiated for " + i + ": " + loadTestDataListItem.id);
                 await initiateFlow(loadTestDataListItem).then(res => {
-                    console.log("Flow Successfull initiated for " + i + ": " + loadTestDataListItem.username);
+                    console.log(cg(getNow()), '\t', "Flow Successfull initiated for " + i + ": " + loadTestDataListItem.id);
                     resolve();
                 }).catch(err => {
-                    console.log("Error initiating flow for " + i + ": " + loadTestDataListItem.username);
-                    console.log(err);
-                    console.log("Discarding this ID " + i + ": " + loadTestDataListItem.username);
+                    console.log(cg(getNow()), '\t', "Error initiating flow for " + i + ": " + loadTestDataListItem.id);
+                    console.log(cg(getNow()), '\t', err);
+                    console.log(cg(getNow()), '\t', "Discarding this ID " + i + ": " + loadTestDataListItem.id);
                     reject();
                 });
             }

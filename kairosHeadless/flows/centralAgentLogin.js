@@ -2,15 +2,19 @@ var exports = module.exports = {};
 
 const loadTestDataList = require("../extras/loadTestData.js");
 const logUtil = require("../extras/logUtil.js");
+const commonUtils = require("../extras/utils.js");
 const constants = require("../constants/common.js");
 const automator = require("../main/automator.js");
 const puppeteer = require('puppeteer');
-const https = require('https')
+const https = require('https');
+const moment = require('moment');
+const chalk = require('chalk');
 
 const browser = automator.browser;
 
 const config = {
-    URL: 'https://central-dev.phonon.io/authorization-server/user/signin',
+    // URL: 'https://central-test.phonon.io/authorization-server/user/signin',
+    URL: 'https://central.phonon.in/authorization-server/user/signin',
     viewPort: { width: 1280, height: 615 },
     screenshotInterval: 10000,
 };
@@ -19,9 +23,29 @@ function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 };
 
+const getNow = commonUtils.getNow;
+const getDiff = commonUtils.getDiff;
+const cg = commonUtils.cg;
+const cc = commonUtils.cc;
+const waitForNetworkIdle = commonUtils.waitForNetworkIdle;
+
+async function startEventScreenshots(page, loadTestDataItem, itemIndex) {
+    // await timeout(2500);
+    // await page.waitForSelector('#footer-incoming:not(.ng-hide)', { timeout: 0 , visible: true});
+    await page.waitForNavigation({ waitUntil:'domcontentloaded'});
+    console.log(cg(getNow()), '\t', getNow(), loadTestDataItem.id, "Capturing events");
+    takeIncomingScreenshot(page, loadTestDataItem, itemIndex);
+    takeConnectedScreenshot(page, loadTestDataItem, itemIndex);
+    takeCompletedScreenshot(page, loadTestDataItem, itemIndex);
+    takeMissedScreenshot(page, loadTestDataItem, itemIndex);
+    // takeOtherEventsScreenshot(page, loadTestDataItem, itemIndex);
+}
+
 async function takeIncomingScreenshot (page, loadTestDataItem, itemIndex) {
-	await page.waitForSelector('#footer-incoming:not(.ng-hide)', { timeout: 0 });
-	console.log(loadTestDataItem.id, "takeIncomingScreenshot");
+    
+	await page.waitForSelector('#footer-incoming:not(.ng-hide)', { timeout: 0 , visible: true});
+    await page.evaluate(() => {console.log(document.querySelector('#footer-incoming:not(.ng-hide)')); debugger; });
+	console.log(cg(getNow()), '\t', loadTestDataItem.id, "takeIncomingScreenshot");
 	// Wait for one second before taking screenshot.
 	await timeout(1000);
 	await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "incoming"), fullPage: true });
@@ -31,8 +55,9 @@ async function takeIncomingScreenshot (page, loadTestDataItem, itemIndex) {
 }
 
 async function takeConnectedScreenshot (page, loadTestDataItem, itemIndex) {
-	await page.waitForSelector('#footer-connected:not(.ng-hide)', { timeout: 0 });
-	console.log(loadTestDataItem.id, "takeConnectedScreenshot");
+	await page.waitForSelector('#footer-connected:not(.ng-hide)', { timeout: 0 , visible: true});
+    await page.evaluate(() => {debugger;});
+	console.log(cg(getNow()), '\t', loadTestDataItem.id, "takeConnectedScreenshot");
 	// Wait for one second before taking screenshot.
 	await timeout(1000);
 	await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "connected"), fullPage: true });
@@ -42,8 +67,9 @@ async function takeConnectedScreenshot (page, loadTestDataItem, itemIndex) {
 }
 
 async function takeCompletedScreenshot (page, loadTestDataItem, itemIndex) {
-	await page.waitForSelector('#footer-completed:not(.ng-hide)', { timeout: 0 });
-	console.log(loadTestDataItem.id, "takeCompletedScreenshot");
+	await page.waitForSelector('#footer-completed:not(.ng-hide)', { timeout: 0 , visible: true});
+    await page.evaluate(() => {debugger;});
+	console.log(cg(getNow()), '\t', loadTestDataItem.id, "takeCompletedScreenshot");
 	// Wait for one second before taking screenshot.
 	await timeout(1000);
 	await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "completed"), fullPage: true });
@@ -53,8 +79,8 @@ async function takeCompletedScreenshot (page, loadTestDataItem, itemIndex) {
 }
 
 async function takeMissedScreenshot (page, loadTestDataItem, itemIndex) {
-	await page.waitForSelector('#missed:not(.ng-hide)', { timeout: 0 });
-	console.log(loadTestDataItem.id, "takeMissedScreenshot");
+	await page.waitForSelector('#missed:not(.ng-hide)', { timeout: 0 , visible: true});
+	console.log(cg(getNow()), '\t', loadTestDataItem.id, "takeMissedScreenshot");
 	// Wait for one second before taking screenshot.
 	await timeout(1000);
 	await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "missed"), fullPage: true });
@@ -65,14 +91,17 @@ async function takeMissedScreenshot (page, loadTestDataItem, itemIndex) {
 
 async function alertDisconnect (page, loadTestDataItem, itemIndex) {
     await page.waitForSelector('#toast-container > div > div > div > div[aria-label="You are offline"]', { timeout: 0 });
-    console.log(loadTestDataItem.id, "alertDisconnect");
+    loadTestDataItem.totalDisconnects++;
+    loadTestDataItem.lastDisconnectAt = moment();
+    console.log(cg(getNow()), '\t', loadTestDataItem.id, chalk.red("alert! Net Disconnect #"+loadTestDataItem.totalDisconnects+" at", getNow()) );
     // Wait for one second before taking screenshot.
-    await timeout(1000);
+    await timeout(500);
     await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "disconnected"), fullPage: true });
     let text = "Test: " + automator.testName + "| Agent: " + loadTestDataItem.id + " | Disconnected at " + new Date().toLocaleTimeString() + " ( " + new Date().getTime() + " ).";
     if(loadTestDataItem.options.getSlackAlerts)
         sendToSlack(text);
     await page.waitForSelector('#toast-container > div > div > div > div[aria-label="You are offline"]', { hidden: true, timeout: 0 });
+    console.log(cg(getNow()), '\t', loadTestDataItem.id, chalk.green("back online at", getNow()), "after", cc(getDiff(loadTestDataItem.lastDisconnectAt)), "seconds");
     // You might say it's a better idea to keep the sendToSlack function here.
     // Since it makes sense to only send message when you are back online.
     // However, it is not neccessary that the socket disconnection occurred because of internet.
@@ -118,10 +147,12 @@ function sendToSlack (text, retry = 0) {
     req.end()
 }
 
+
+
 // async function takeOtherEventsScreenshot (page, loadTestDataItem, itemIndex) {
 // 	await page.waitForSelector('.agentui__footer-title.m-t-none', { timeout: 0 });
 // 	const titleText = await page.$eval('.agentui__footer-title.m-t-none', el => {
-// 		debugger;
+// 		await page.evaluate(() => {debugger;});
 // 	});
 
 // 	console.log(loadTestDataItem.id, "titleText", titleText);
@@ -161,15 +192,26 @@ function sendToSlack (text, retry = 0) {
 // }
 
 async function centralAgentLogin(loadTestDataItem, itemIndex) {
-    if(loadTestDataItem.options.headless === false)
-        console.log(loadTestDataItem.id, "Headless is false");
+
+    loadTestDataItem.totalDisconnects = 0;
+    loadTestDataItem.schduledScreenshotCount = 0;
+
+    // if(loadTestDataItem.options.headless === true)
+    //     console.log(cg(getNow()), '\t', "Headless: True");
     // const browser = await puppeteer.launch({ headless: false });
     const context = await automator.browser.createIncognitoBrowserContext();
     const page = await context.newPage();
     page.setDefaultTimeout(constants.DEFAULTTIMEOUT);
 
     var scheduledID = null;
+    console.log(cg(getNow()), '\t', loadTestDataItem.id, "Started at", chalk.cyan(getNow()));
+
+    loadTestDataItem.start = moment();
     await page.goto(config.URL, { waitUntil: 'networkidle0' });
+
+    // Sign In
+    loadTestDataItem.urlLoaded = getDiff(loadTestDataItem.start);
+    console.log(cg(getNow()), '\t', loadTestDataItem.id, "Sign In Page Loaded. Duration:", chalk.green(loadTestDataItem.urlLoaded, 'seconds'));
 
     await page.setViewport(config.viewPort)
 
@@ -194,6 +236,10 @@ async function centralAgentLogin(loadTestDataItem, itemIndex) {
 
     // await page.click('.ui > .ui > .field > .six > .positive')
 
+    // Login Page
+    loadTestDataItem.loginPage = getDiff(loadTestDataItem.start);
+    console.log(cg(getNow()), '\t', loadTestDataItem.id, "Login Page Loaded. Duration:", chalk.green(loadTestDataItem.loginPage, 'seconds'));
+
     await page.waitForSelector('.form-group .radio > #SOFTPHONE');
     await page.click('.form-group .radio > #SOFTPHONE');
 
@@ -203,47 +249,50 @@ async function centralAgentLogin(loadTestDataItem, itemIndex) {
 
     await timeout(500);
     await page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "softLoginDetails"), fullPage: true });
-    console.log(loadTestDataItem.id, "softLoginDetails");
+    // console.log(loadTestDataItem.id, "softLoginDetails");
     await page.click('.agentui__login--submit-button > button');
 
-    if(loadTestDataItem.options.takeEventsScreenshot) {
-    	console.log(loadTestDataItem.id, "Capturing events");
-	    takeIncomingScreenshot(page, loadTestDataItem, itemIndex);
-	    takeConnectedScreenshot(page, loadTestDataItem, itemIndex);
-	    takeCompletedScreenshot(page, loadTestDataItem, itemIndex);
-	    takeMissedScreenshot(page, loadTestDataItem, itemIndex);
-	    // takeOtherEventsScreenshot(page, loadTestDataItem, itemIndex);
-    }
+    // Logged In
+    loadTestDataItem.loggedIn = getDiff(loadTestDataItem.start);
+    console.log(cg(getNow()), '\t', loadTestDataItem.id, "Logged In. Duration:", chalk.green(loadTestDataItem.loggedIn, 's'));
 
+    if(loadTestDataItem.options.takeEventsScreenshot) {
+    	startEventScreenshots(page, loadTestDataItem, itemIndex);
+    }
     alertDisconnect(page, loadTestDataItem, itemIndex);
 
+
+    
     setTimeout(() => {
         if (!(page.isClosed())) {
+            console.log(cg(getNow()), "\t", loadTestDataItem.id, "--- ScreenAfter10Seconds ---");
+            loadTestDataItem.schduledScreenshotCount++;
             page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "ScreenAfter10Seconds"), fullPage: true })
         }
 
-    }, config.screenshotInterval)
+    }, 1000 * 10)
 
     if (constants.TAKESCHEDULEDSCREENGRAB && loadTestDataItem.screenGrab) {
-        console.log(loadTestDataItem.id, "Scheduled Screenshot ENABLED for " + loadTestDataItem.id);
+        console.log(cg(getNow()), '\t',loadTestDataItem.id, "--- Starting Scheduled Screenshots every", cc(config.screenshotInterval/1000), "seconds ---");
+        loadTestDataItem.schduledScreenshotCount = 0;
         scheduledID = setInterval(() => {
             if (!(page.isClosed())) {
+                console.log(cg(getNow()), '\t',loadTestDataItem.id, "--- Scheduled Screenshot #"+loadTestDataItem.schduledScreenshotCount++, "---");
                 page.screenshot({ path: logUtil.screenShotPath(loadTestDataItem.id, itemIndex, "ScheduledScreenShot"), fullPage: true })
             }
 
-        }, 1000 * 60)
-    } else {
-        console.log("Scheduled Screenshot DISABLED for " + loadTestDataItem.id);
+        }, config.screenshotInterval)
     }
 
     page.on('close', (loadTestDataItem) => {
-    	console.log(loadTestDataItem.id, "Page is closed...");
+    	console.log(cg(getNow()), '\t', loadTestDataItem.id, "Page is closed...");
         if (scheduledID) {
             clearInterval(scheduledID);
-            console.log(loadTestDataItem.id, "Screenshot Interval Cleared...");
+            console.log(cg(getNow()), '\t', loadTestDataItem.id, "Screenshot Interval Cleared...");
         }
     });
 
+    await waitForNetworkIdle(page, 1000, 0);
 }
 
 

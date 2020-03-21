@@ -1,8 +1,8 @@
 var exports = module.exports = {};
 
-let TAKESCHEDULEDSCREENGRAB = true;
-let DEFAULTTIMEOUT = 60 * 1000;
-let BROWSERTIMEOUT = 10 * 1000;
+let TAKESCHEDULEDSCREENGRAB = false;
+let DEFAULTTIMEOUT = 120 * 1000;
+let BROWSERTIMEOUT = 20 * 1000;
 let CONCURRENT = 5;
 let HEADLESSMODE = true;
 
