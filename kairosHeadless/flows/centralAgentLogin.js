@@ -16,7 +16,7 @@ const config = {
     // URL: 'https://central-test.phonon.io/authorization-server/user/signin',
     URL: 'https://central.phonon.in/authorization-server/user/signin',
     viewPort: { width: 1280, height: 615 },
-    screenshotInterval: 10000,
+    screenshotInterval: 20000,
 };
 
 function timeout(ms) {

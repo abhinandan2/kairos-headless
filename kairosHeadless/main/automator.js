@@ -26,7 +26,6 @@ var argv = require('yargs')
     .boolean(['d'])
     .argv;
 
-const loadTestDataList = loadTest.loadTestData;
 
 const exceutionMap = {};
 
@@ -46,9 +45,16 @@ var browser;
 var testName;
 
 if ((typeof(argv.test) === "string") && (argv.test.length > 3) && !(/\s/.test(argv.test))) {
+    // Debug
     if(argv.debug)
         constants.HEADLESSMODE = false;    
+    // Concurrent
     constants.CONCURRENT = argv.concurrency || constants.CONCURRENT;
+
+    // Start & End:
+    constants.AGENT_START_DEFAULT = argv.start || constants.AGENT_START_DEFAULT;
+    constants.AGENT_END_DEFAULT = argv.end || constants.AGENT_END_DEFAULT;
+
     testName = '/' + argv.test + "#" + commonUtils.getTimeString();
     testDir = logDir + testName;
     testDirLogs = logDir + testName + "/consoleLogs";
@@ -83,6 +89,9 @@ try {
 
 console.log(chalk.magentaBright("Concurrency: "), constants.CONCURRENT);
 console.log(chalk.magentaBright("Headless: "), constants.HEADLESSMODE);
+
+// Load the test data
+const loadTestDataList = loadTest.loadTestData;
 
 (async () => {
     browser = await puppeteer.launch({
